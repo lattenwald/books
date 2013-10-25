@@ -18,3 +18,42 @@ Available options:
   -x  perl regexp of files to exclude
   -1  use first element by default in all choices
 ```
+
+Example
+
+```
+$ books.pl -f1 1 2
+Total files: 6
+
+$ tree 1
+1
+├── 93571
+│   └── download.fb2.zip
+├── 93753
+│   └── download.fb2.zip
+├── 93836
+│   └── download.fb2.zip
+├── 93854
+│   └── download.fb2.zip
+├── 93861
+│   └── download.fb2.zip
+└── 93872
+    └── download.fb2.zip
+
+6 directories, 6 files
+
+$ tree 2
+2
+├── Аркадий Стругацкий
+│   ├── Далекая радуга.fb2.zip
+│   ├── Парень из преисподней.fb2.zip
+│   ├── Попытка к бегству.fb2.zip
+│   ├── Рассказы
+│   │   └── Бедные злые люди.fb2.zip
+│   └── Трудно быть богом.fb2.zip
+└── Лоис Буджолд
+    └── Барраяр
+        └── 14. Подарки к Зимнепразднику.fb2.zip
+
+4 directories, 6 files
+```
