@@ -1,7 +1,7 @@
 books
 =====
 
-Basic books organizer. Understands formats fb2 and fb2.zip, requires "unzip" binary, Perl 5.10 or higher with modules File::Path, File::Temp and XML::Fast.
+Basic books organizer. Understands formats fb2 and fb2.zip, requires "unzip" binary, Perl 5.10 or higher with modules `File::Path`, `File::Temp` and `XML::Fast`.
 
 Help is shown when run with "--help" switch:
 
