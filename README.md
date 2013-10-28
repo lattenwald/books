@@ -17,6 +17,7 @@ Available options:
   -m  move files (default action is just copy)
   -x  perl regexp of files to exclude
   -1  use first element by default in all choices
+  -u  unlink target file before renaming original, if target already exists
 ```
 
 Example

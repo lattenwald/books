@@ -12,8 +12,7 @@ use Getopt::Std;
 use IPC::Open3;
 use XML::Fast;
 use Symbol qw/gensym/;
-
-sub encode {return $_[1]}
+use Encode;
 
 our $VERSION = '1.0';
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
@@ -30,7 +29,7 @@ main();
 
 sub init {
 	binmode STDOUT, ':utf8';
-	unless(getopts('fmpx:1', \%opts)) {
+	unless(getopts('fmpx:1u', \%opts)) {
 		usage();
 		exit 1;
 	}
@@ -67,17 +66,24 @@ sub wanted {
 		return;
 	}
 
+	my $newname = $outputdir . '/' . $book->{newfilename};
+	return if $newname eq decode 'utf-8', $File::Find::name;
+
 	if ($opts{f}) {
-		my $newname = $outputdir . '/' . $book->{newfilename};
 		make_path(dirname $newname);
+		if (-f($newname) and $opts{u}) {
+			unlink $newname;
+		}
 		my $ok = $opts{m} ? rename($File::Find::name, $newname) : link($File::Find::name, $newname);
 		unless ($ok) {
 			warn "Failed action on '$File::Find::name'";
 			return;
 		}
 	} elsif ($opts{p}) {
-		my $newname = $outputdir . '/' . $book->{newfilename};
-		say (($opts{m} ? 'rename' : 'link') . " '$File::Find::name' '$newname'");
+		if (-f($newname) and $opts{u}) {
+			say "unlink $newname";
+		}
+		say (($opts{m} ? 'rename' : 'link') . " '" . decode('utf-8', $File::Find::name) . "' '$newname'");
 	}
 
 	$cnt++;
@@ -104,7 +110,7 @@ sub parse_fb2 {
 		$book = xml2hash $contents;
 	}
 	my $data = $book->{FictionBook}{description}{'title-info'};
-	my $title = encode 'utf-8', $data->{'book-title'};
+	my $title = $data->{'book-title'};
 	$info->{title} = $title;
 	$info->{author} = author_string($data->{author}, $title);
 	$info->{series} = series($data->{sequence}, $title);
@@ -137,12 +143,13 @@ sub book_filename {
 	  . ($book->{series} ? $book->{series}{name} . '/' : '')
 	  . ($book->{series} && $book->{series}{num} ? $book->{series}{num} . '. ' : '' )
 	  . $book->{title} . '.' . $book->{format};
+	$newname =~ s/://g;
 	return $newname;
 }
 
 sub author_string {
 	my ($author, $book) = @_;
-	my $to_string = sub {encode 'utf-8', trim(join ' ', grep {$_} @{$_[0]}{qw/first-name last-name/})};
+	my $to_string = sub {trim(join ' ', grep {$_} @{$_[0]}{qw/first-name last-name/})};
 	$author = choose($author, $to_string, 'author', $book);
 	return $to_string->($author);
 }
@@ -150,8 +157,8 @@ sub author_string {
 sub series {
 	my ($seq, $book) = @_;
 	return unless $seq;
-	$seq = choose($seq, sub {encode 'utf-8', $_[0]->{-name} . ' (book ' . $_[0]->{-number} . ')'}, 'series', $book);
-	return { name => encode('utf-8', $seq->{'-name'}), num => $seq->{'-number'} };
+	$seq = choose($seq, sub {$_[0]->{-name} . ' (book ' . $_[0]->{-number} . ')'}, 'series', $book);
+	return { name => $seq->{'-name'}, num => $seq->{'-number'} };
 }
 
 sub choose {
@@ -191,6 +198,7 @@ Available options:
   -m  move files (default action is just copy)
   -x  perl regexp of files to exclude
   -1  use first element by default in all choices
+  -u  unlink target file before renaming original, if target already exists
 USAGE
 
 	print STDERR $usage;
